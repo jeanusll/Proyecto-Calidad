@@ -130,40 +130,11 @@ const userSchema = new mongoose.Schema(
     groupChats: {
       type: [
         {
-          imageGroup: {
-            type: String,
-          },
-          users: {
-            type: [
-              {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
-                required: true,
-              },
-            ],
-          },
-          messagues: {
-            type: [
-              {
-                sender: {
-                  type: mongoose.Schema.Types.ObjectId,
-                  ref: "User",
-                  required: true,
-                },
-                content: {
-                  type: String,
-                  required: true,
-                },
-                dateOfSend: {
-                  type: Date,
-                  default: Date.now,
-                },
-              },
-            ],
-            default: [],
-          },
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Chat",
         },
       ],
+      default: [],
     },
   },
   {

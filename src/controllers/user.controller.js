@@ -57,16 +57,12 @@ export const getUserById = async (req, res) => {
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    await User.findByIdAndDelete(id, (error, user) => {
-      if (error) {
-        return res.status(500).json({
-          message: error.message,
-        });
-      }
-      return res.status(200).json({
-        message: "User deleted",
-      });
-    });
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "User deleted"
+    })
+
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -93,12 +89,12 @@ export const getuserByName = async (req, res) => {
   }
 };
 
-export const updateUser = (req, res) => {
+export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { fullname, biography, gender, avatar, preferences } = req.body;
 
-    User.findByIdAndUpdate(
+    const userUpdated = await User.findByIdAndUpdate(
       id,
       {
         fullname,
@@ -107,24 +103,46 @@ export const updateUser = (req, res) => {
         avatar,
         preferences,
       },
-      { new: true },
-      (error, user) => {
-        if (error) {
-          return res.status(500).json({
-            message: error.message,
-          });
-        }
-        return res.status(200).json({
-          user,
-        });
-      }
+      { new: true }
     );
+
+    if (!userUpdated) {
+      return res.status(500).json({
+        message: error.message,
+      });
+    }
+
+    return res.status(200).json(userUpdated)
+
+
   } catch (error) {
     return res.status(500).json({
       message: error.message,
     });
   }
 };
+
+async function isUserUnique(username, email) {
+  let message = "";
+  let status = true
+  const userFound = await User.findOne({ $or: [{ email }, { username }] }); 
+
+  if (userFound) {
+    status = false
+    if (userFound.email === email) message = "The email already exists";
+    else {
+      message = "The username already exists";
+    }
+  }
+
+  return {
+    status,
+    message
+  }
+
+
+
+}
 
 export const register = async (req, res) => {
   try {
@@ -140,18 +158,17 @@ export const register = async (req, res) => {
       preferences,
     } = req.body;
 
-    const userFound = await User.findOne({ $or: [{ email }, { username }] });
 
-    let message = "";
-    if (userFound) {
-      if (userFound.email === email) message = "The email already exists";
-      else {
-        message = "The username already exists";
-      }
-      return res.status(400).json({
-        message,
-      });
+    const isUnique = await isUserUnique(username, email)
+    console.log(isUnique)
+    if (!isUnique.status) {
+      return res.json({
+        message: isUnique.message
+      })
     }
+
+
+
 
     const birthDay = new Date(dateOfBirth);
 
@@ -189,7 +206,7 @@ export const register = async (req, res) => {
       preferences: userSaved.preferences,
       money: userSaved.money,
       points: userSaved.points,
-      followers: userFound.followers,
+      followers: userSaved.followers
     });
   } catch (error) {
     console.error(error);

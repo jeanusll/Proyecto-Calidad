@@ -19,12 +19,12 @@ const router = Router();
 router.post("/register", validateSchema(registerSchema), register);
 router.post("/login", validateSchema(loginSchema), login);
 router.get("/verify", verifyToken);
-router.post("/logout", verifyToken, logout);
+router.post("/logout", logout);
 
 router.get("/:id", auth, getUserById);
 router.get("/findByName/:username", auth, getuserByName);
 router.put("/:id", auth, updateUser);
 router.delete("/:id", auth, deleteUser);
-router.post("/updatePassword/:id", auth, updatePassword);
+router.patch("/updatePassword/:id", auth, updatePassword);
 
 export default router;

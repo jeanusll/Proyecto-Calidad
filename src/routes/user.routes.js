@@ -6,7 +6,7 @@ import {
   logout,
   register,
   updateUser,
-  verifyToken,
+  verifyTokenUser,
   deleteUser,
   updatePassword,
 } from "../controllers/user.controller.js";
@@ -18,7 +18,7 @@ const router = Router();
 
 router.post("/register", validateSchema(registerSchema), register);
 router.post("/login", validateSchema(loginSchema), login);
-router.get("/verify", verifyToken);
+router.get("/verify", verifyTokenUser);
 router.post("/logout", logout);
 
 router.get("/:id", auth, getUserById);

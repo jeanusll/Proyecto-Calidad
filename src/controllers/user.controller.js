@@ -1,9 +1,7 @@
 import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { TOKEN_SECRET } from "../config.js";
 import { createAccessToken } from "../libs/jwt.js";
-
+import { verifyToken } from "../libs/verifyToken.js";
 export const updatePassword = async (req, res) => {
   try {
     const { id } = req.params;
@@ -60,9 +58,8 @@ export const deleteUser = async (req, res) => {
     await User.findByIdAndDelete(id);
 
     return res.status(200).json({
-      message: "User deleted"
-    })
-
+      message: "User deleted",
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -112,9 +109,7 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    return res.status(200).json(userUpdated)
-
-
+    return res.status(200).json(userUpdated);
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -124,11 +119,11 @@ export const updateUser = async (req, res) => {
 
 async function isUserUnique(username, email) {
   let message = "";
-  let status = true
-  const userFound = await User.findOne({ $or: [{ email }, { username }] }); 
+  let status = true;
+  const userFound = await User.findOne({ $or: [{ email }, { username }] });
 
   if (userFound) {
-    status = false
+    status = false;
     if (userFound.email === email) message = "The email already exists";
     else {
       message = "The username already exists";
@@ -137,11 +132,8 @@ async function isUserUnique(username, email) {
 
   return {
     status,
-    message
-  }
-
-
-
+    message,
+  };
 }
 
 export const register = async (req, res) => {
@@ -158,17 +150,13 @@ export const register = async (req, res) => {
       preferences,
     } = req.body;
 
-
-    const isUnique = await isUserUnique(username, email)
-    console.log(isUnique)
+    const isUnique = await isUserUnique(username, email);
+    console.log(isUnique);
     if (!isUnique.status) {
       return res.json({
-        message: isUnique.message
-      })
+        message: isUnique.message,
+      });
     }
-
-
-
 
     const birthDay = new Date(dateOfBirth);
 
@@ -206,7 +194,7 @@ export const register = async (req, res) => {
       preferences: userSaved.preferences,
       money: userSaved.money,
       points: userSaved.points,
-      followers: userSaved.followers
+      followers: userSaved.followers,
     });
   } catch (error) {
     console.error(error);
@@ -257,21 +245,16 @@ export const login = async (req, res) => {
   }
 };
 
-export const verifyToken = async (req, res) => {
+export const verifyTokenUser = async (req, res) => {
   const { token } = req.cookies;
   if (!token) return res.send(false);
 
-  jwt.verify(token, TOKEN_SECRET, async (error, user) => {
-    if (error) return res.sendStatus(401);
+  const userFound = verifyToken(token);
 
-    const userFound = await User.findById(user.id);
-    if (!userFound) return res.sendStatus(401);
+  if (!userFound) return res.send(false);
 
-    return res.json({
-      id: userFound._id,
-      username: userFound.username,
-      email: userFound.email,
-    });
+  return res.json({
+    id: userFound.id,
   });
 };
 

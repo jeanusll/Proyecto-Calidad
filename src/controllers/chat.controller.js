@@ -1,7 +1,4 @@
 import Chat from "../models/chat.model.js";
-import User from "../models/user.model.js";
-import jwt from "jsonwebtoken";
-import { TOKEN_SECRET } from "../config.js";
 
 export const sendMessage = async (req, res) => {
   try {

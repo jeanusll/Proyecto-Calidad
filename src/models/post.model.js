@@ -1,52 +1,61 @@
 import mongoose from "mongoose";
 
-const postSchema = new mongoose.Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
-  content: {
-    type: String,
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  reactions: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      reaction: {
-        type: String,
-        required: true,
-        enum: ["like"],
-      },
+const postSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-  ],
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-      },
-      text: {
-        type: String,
-        required: true,
-      },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-      },
+    description: {
+      type: String,
+      required: true,
     },
-  ],
-});
+    mediapath: {
+      type: String,
+      required: true,
+    },
+    reactions: {
+      type: [
+        {
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          reaction: {
+            type: String,
+            required: true,
+            enum: ["like"],
+          },
+        },
+      ],
+      default: [],
+    },
+    comments: {
+      type: [
+        {
+          user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          text: {
+            type: String,
+            required: true,
+          },
+          createdAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      default: [],
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-const Post = mongoose.model("Post", postSchema);
-
-export default Post;
+export default mongoose.model("Post", postSchema);

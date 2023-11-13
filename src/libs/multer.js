@@ -3,9 +3,23 @@ import fs from "fs-extra";
 import { v4 } from "uuid";
 import path from "path";
 
+import { verifyToken } from "./verifyToken.js";
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const userFolder = `media/${req.body.user}`;
+    const { token } = req.cookies;
+
+    if (!token) {
+      return cb(new Error("Token no proporcionado"), "media/");
+    }
+
+    const userFound = verifyToken(token);
+
+    if (!userFound) {
+      return cb(new Error("Token no válido"), "media/");
+    }
+
+    const userFolder = `media/${userFound.id}`;
     fs.ensureDir(userFolder)
       .then(() => {
         cb(null, userFolder);

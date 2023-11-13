@@ -1,7 +1,7 @@
 import Post from "../models/post.model.js";
-
+import { verifyToken } from "../libs/verifyToken.js";
 export const getAllPosts = async (req, res) => {
-  const page = req.query.page || 1;
+  const page = req.params.page || 1;
   const perPage = 50;
 
   try {
@@ -18,20 +18,17 @@ export const getAllPosts = async (req, res) => {
 
 export const createPost = async (req, res) => {
   const { token } = req.cookies;
-  const { user, description } = req.body;
+  const { description } = req.body;
 
-  // if (!token) return res.send(false);
-
-  // const userFound = verifyToken(token);
-
-  // if (!userFound) return res.send(false);
-
-  // if (!req.file) {
-  //   return res.status(400).send("No se ha seleccionado ningún archivo.");
-  // }
+  if (!token) return res.send(false);
+  const userFound = verifyToken(token);
+  if (!userFound) return res.send(false);
+  if (!req.file) {
+    return res.status(400).send("No se ha seleccionado ningún archivo.");
+  }
 
   const newPost = new Post({
-    user: user,
+    user: userFound.id,
     description,
     mediapath: req.file.path,
   });

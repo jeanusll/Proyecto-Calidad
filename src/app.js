@@ -15,9 +15,7 @@ const __dirname = dirname(__filename);
 const app = express();
 
 app.use(
-  cors({
-    credentials: true,
-  })
+  cors("*")
 );
 
 app.use(express.static(path.join(__dirname, "public")));

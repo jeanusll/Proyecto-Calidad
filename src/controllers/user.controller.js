@@ -249,13 +249,18 @@ export const verifyTokenUser = async (req, res) => {
   const { token } = req.cookies;
   if (!token) return res.send(false);
 
-  const userFound = verifyToken(token);
+  try {
+    const userFound = await verifyToken(token);
 
-  if (!userFound) return res.send(false);
+    if (!userFound) return res.send(false);
 
-  return res.json({
-    id: userFound.id,
-  });
+    return res.json({
+      id: userFound.id,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error al verificar el token" });
+  }
 };
 
 export const logout = async (req, res) => {

@@ -21,20 +21,38 @@ export const createPost = async (req, res) => {
   const { description } = req.body;
 
   if (!token) return res.send(false);
-  const userFound = verifyToken(token);
-  if (!userFound) return res.send(false);
-  if (!req.file) {
-    return res.status(400).send("No se ha seleccionado ningún archivo.");
+
+  try {
+    const userFound = await verifyToken(token);
+
+    if (!userFound)
+      return res.json({
+        error: "No se ha encontrado al usuario",
+      });
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: "No se ha seleccionado un archivo admitido",
+      });
+    }
+
+    const paths = req.file.path.split("\\").slice(-2);
+    const path = "/media/" + paths[0] + "/" + paths[1];
+
+    const newPost = new Post({
+      user: userFound.id,
+      description,
+      mediapath: path,
+    });
+
+    const postSaved = await newPost.save();
+    res.json(postSaved);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "ha ocurrido un error al subir el post",
+    });
   }
-
-  const newPost = new Post({
-    user: userFound.id,
-    description,
-    mediapath: req.file.path,
-  });
-
-  const postSaved = await newPost.save();
-  res.json(postSaved);
 };
 
 export const updatePost = async (req, res) => {

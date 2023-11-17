@@ -63,3 +63,63 @@ export const getAllChallenges = async (req, res) => {
     res.status(500).json({ error: "Error al obtener los challenges" });
   }
 };
+
+export const getChallengeById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const challenge = await Challenge.findById(id)
+      .populate("creator", "username")
+      .populate("participants", "username");
+
+    if (!challenge) res.status(500).json({ error: "Challenge no encontrado" });
+
+    res.json(challenge);
+  } catch (err) {
+    res.status(500).json({ error: "Error al buscar el challenge" });
+  }
+};
+export const participate = async (req, res) => {
+  const { id } = req.params;
+  const { token } = req.cookies;
+
+  try {
+    const userFound = await verifyToken(token);
+
+    if (!userFound) {
+      return res.status(500).json({ error: "No se ha encontrado el usuario" });
+    }
+
+    const challenge = await Challenge.findById(id);
+
+    if (!challenge) {
+      return res.status(500).json({ error: "Challenge no encontrado" });
+    }
+
+    const dateNow = new Date();
+    const endDate = new Date(challenge.endDate);
+
+    if (dateNow > endDate) {
+      return res.status(500).json({ error: "El Challenge ha terminado" });
+    }
+
+    challenge.participants.push(userFound.id);
+
+    const challengeUpdate = await Challenge.findByIdAndUpdate(
+      id,
+      { participants: challenge.participants },
+      { new: true }
+    );
+
+    if (!challengeUpdate) {
+      return res
+        .status(500)
+        .json({ error: "Error al actualizar el Challenge" });
+    }
+
+    res.json(challengeUpdate);
+  } catch (err) {
+    res.status(500).json({
+      error: "Error al participar en el Challenge",
+    });
+  }
+};

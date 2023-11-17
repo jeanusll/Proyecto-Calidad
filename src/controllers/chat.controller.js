@@ -78,3 +78,43 @@ export const createChat = async (req, res) => {
 
   res.json(chatSaved);
 };
+
+export const addUserToChat = async (req, res) => {
+  const { id } = req.params;
+  const { user_id } = req.body;
+  const { token } = req.cookies;
+
+  try {
+    const userFound = await verifyToken(token);
+
+    if (!userFound) {
+      return res.status(500).json({ error: "Usuario no encontrrado" });
+    }
+
+    const chat = await Chat.findById(id);
+
+    if (!chat) {
+      return res.status(500).json({ error: "Chat no encontrado" });
+    }
+
+    if (!chat.users.includes(userFound.id)) {
+      return res
+        .status(500)
+        .json({ error: "No puedes agregar por que no pertences al chat" });
+    }
+
+    if (chat.users.includes(user_id)) {
+      return res.status(500).json({ error: "El usuario ya pertenece al chat" });
+    }
+
+    const chatUpdated = await Chat.findByIdAndUpdate(id, {
+      $push: {
+        users: user_id,
+      },
+    });
+
+    res.json(chatUpdated);
+  } catch (err) {
+    res.status(500).json({ error: "Error al añadir el usuario al chat" });
+  }
+};

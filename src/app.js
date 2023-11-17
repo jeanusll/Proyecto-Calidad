@@ -21,6 +21,6 @@ app.use(cookieParser());
 app.use("/api/user", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/post", postRoutes);
-app.use("/api/challenge", challengesRoutes);
+//app.use("/api/challenge", challengesRoutes);
 
 export default app;

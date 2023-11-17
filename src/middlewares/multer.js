@@ -5,38 +5,43 @@ import path from "path";
 import { verifyToken } from "../libs/verifyToken.js";
 import { __dirname } from "../libs/dirname.js";
 
-const storage = multer.diskStorage({
-  destination: async function (req, file, cb) {
-    try {
-      const { token } = req.cookies;
+const storage = (type) =>
+  multer.diskStorage({
+    destination: async function (req, file, cb) {
+      try {
+        const { token } = req.cookies;
 
-      if (!token) {
-        return cb(new Error("Token no proporcionado"));
+        if (!token) {
+          return cb(new Error("Token no proporcionado"));
+        }
+
+        const userFound = await verifyToken(token);
+
+        if (!userFound) {
+          return cb(new Error("Token no válido"));
+        }
+
+        console.log(type);
+        const userFolder = path.join(
+          __dirname,
+          "../public/media/",
+          userFound.id.toString(),
+          type
+        );
+        await fs.ensureDir(userFolder);
+        cb(null, userFolder);
+      } catch (err) {
+        cb(err);
       }
+    },
+    filename: function (req, file, cb) {
+      const uniqueFileName = v4() + path.extname(file.originalname);
+      cb(null, uniqueFileName);
+    },
+  });
 
-      const userFound = await verifyToken(token);
-
-      if (!userFound) {
-        return cb(new Error("Token no válido"));
-      }
-
-      const userFolder = path.join(
-        __dirname,
-        `../public/media/${userFound.id}`
-      );
-      await fs.ensureDir(userFolder);
-      cb(null, userFolder);
-    } catch (err) {
-      cb(err);
-    }
-  },
-  filename: function (req, file, cb) {
-    const uniqueFileName = v4() + path.extname(file.originalname);
-    cb(null, uniqueFileName);
-  },
-});
-
-const fileFilter = (req, file, cb) => {
+const fileFilter = (videoAccepted) => (req, file, cb) => {
+  console.log(videoAccepted);
   if (
     file.mimetype.startsWith("image/") ||
     file.mimetype.startsWith("video/")
@@ -47,7 +52,8 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-export const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-});
+export const upload = (type, videoAccepted) =>
+  multer({
+    storage: storage(type),
+    fileFilter: fileFilter(videoAccepted),
+  });

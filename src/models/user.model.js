@@ -136,6 +136,10 @@ const userSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    loginAttempts: {
+      type: Number,
+      default: 0,
+    }
   },
   {
     timestamps: true,

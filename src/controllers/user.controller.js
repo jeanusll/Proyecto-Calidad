@@ -211,13 +211,36 @@ export const login = async (req, res) => {
       return res.status(400).json({
         message: ["The email does not exist"],
       });
+    if (!userFound.status) {
+      return res.status(400).json({
+        message: ["Account is locked. Please contact the administrator."],
+      });
+    }
 
     const isMatch = await bcrypt.compare(password, userFound.password);
+
+
     if (!isMatch) {
+
+      userFound.loginAttempts = (userFound.loginAttempts || 0) + 1;
+      await userFound.save();
+
+      if (userFound.loginAttempts >= 3) {
+        userFound.status = false;
+        await userFound.save();
+        return res.status(400).json({
+          message: ["Too many login attempts. Account is now locked."],
+        });
+      }
+
       return res.status(400).json({
         message: ["The password is incorrect"],
       });
     }
+
+
+    userFound.loginAttempts = 0;
+    await userFound.save();
 
     const token = await createAccessToken({
       id: userFound._id,

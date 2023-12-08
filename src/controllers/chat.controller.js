@@ -1,5 +1,8 @@
 import Chat from "../models/chat.model.js";
 
+import { verifyToken } from "../libs/verifyToken.js";
+import { io } from "../app.js";
+
 export const sendMessage = async (req, res) => {
   try {
     const { id } = req.params;
@@ -12,7 +15,14 @@ export const sendMessage = async (req, res) => {
 
     if (!userFound) return res.send(false);
 
-    const chat = await Chat.findById(id);
+    const newMessage = {
+      sender: userFound.id,
+      content: message,
+    };
+
+    const chat = await Chat.findByIdAndUpdate(id, {
+      $push: { messages: newMessage },
+    });
 
     if (!chat) {
       return res.status(404).json({
@@ -20,13 +30,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    const newMessage = {
-      sender: userFound.id,
-      content: message,
-    };
-
-    chat.messages.push(newMessage);
-    await chat.save();
+    io.to(id).emit("newMessage", newMessage);
 
     res.status(201).json({
       newMessage,
@@ -67,16 +71,26 @@ export const getMessages = async (req, res) => {
 
 export const createChat = async (req, res) => {
   const { imageGroup, nameOfGroup, users } = req.body;
+  const { token } = req.cookies;
 
-  const newChat = new Chat({
-    imageGroup,
-    nameOfGroup,
-    users,
-  });
+  try {
+    const userFound = await verifyToken(token);
+    if (!userFound)
+      return res.status(404).json({ error: "Usuario no encontrado" });
 
-  const chatSaved = await newChat.save();
+    users.push(userFound.id);
+    const chat = new Chat({
+      imageGroup,
+      nameOfGroup,
+      users,
+    });
 
-  res.json(chatSaved);
+    const chatSaved = await chat.save();
+
+    res.json(chatSaved);
+  } catch (err) {
+    res.status(500).json({ error: "Error al crear el chat" });
+  }
 };
 
 export const addUserToChat = async (req, res) => {

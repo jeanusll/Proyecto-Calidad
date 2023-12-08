@@ -247,12 +247,13 @@ export const login = async (req, res) => {
 
 export const verifyTokenUser = async (req, res) => {
   const { token } = req.cookies;
-  if (!token) return res.send(false);
+  if (!token) return res.status(500).json({ message: "No token provided" });
 
   try {
     const userFound = await verifyToken(token);
 
-    if (!userFound) return res.send(false);
+    if (!userFound)
+      return res.status(500).json({ message: "Usuario no encontrado" });
 
     return res.json({
       id: userFound.id,
@@ -270,4 +271,27 @@ export const logout = async (req, res) => {
     expires: new Date(0),
   });
   return res.sendStatus(200);
+};
+
+export const getChats = async (req, res) => {
+  const { token } = req.cookies;
+  if (!token) return res.status(500).json({ message: "No token provided" });
+
+  try {
+    const userFound = await verifyToken(token);
+
+    if (!userFound)
+      return res.status(500).json({ message: "Usuario no encontrado" });
+
+    const user = await User.findById(userFound.id);
+
+    if (!user)
+      return res.status(500).json({ message: "Usuario no encontrado" });
+
+    const chats = user.chats;
+
+    return res.json(chats);
+  } catch (e) {
+    return res.status(500).json({ error: "Error al obtener chats" });
+  }
 };

@@ -21,8 +21,8 @@ export const createChallenge = async (req, res) => {
       });
     }
 
-    const paths = req.file.path.split("\\").slice(-2);
-    const path = "/media/" + paths[0] + "/" + paths[1];
+    const paths = req.file.path.split("\\").slice(-3);
+    const path = "/media/"+paths[0] + paths[1] + "/" + paths[2];
 
     const newChallenge = new Challenge({
       tittle,
@@ -51,13 +51,11 @@ export const getAllChallenges = async (req, res) => {
   const perPage = 50;
 
   try {
-    const challenges = await Challenge.aggregate([
-      { $sample: { size: perPage } },
-    ])
+    const challenges = await Challenge.find()
       .skip((page - 1) * perPage)
       .limit(perPage)
-      .populate("creator", "username");
-
+      .populate("creator", "username")
+      .populate("participants", "username")
     res.json(challenges);
   } catch (err) {
     res.status(500).json({ error: "Error al obtener los challenges" });
@@ -95,6 +93,8 @@ export const participate = async (req, res) => {
       return res.status(500).json({ error: "Challenge no encontrado" });
     }
 
+    if(challenge.participants.includes(userFound.id)) return res.status(500).json({"error": "Ya estás participando"})
+
     const dateNow = new Date();
     const endDate = new Date(challenge.endDate);
 
@@ -108,7 +108,9 @@ export const participate = async (req, res) => {
       id,
       { participants: challenge.participants },
       { new: true }
-    );
+    )
+      .populate("creator", "username")
+    .populate("participants", "username");
 
     if (!challengeUpdate) {
       return res

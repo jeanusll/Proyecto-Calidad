@@ -15,10 +15,10 @@ const postUpload = upload("post", true);
 
 router.post("/", postUpload.single("media"), createPost);
 
-router.put("/react/:id", addReaction);
-router.put("/comment/:id", addComment);
+router.put("/react/:id", auth, addReaction);
+router.put("/comment/:id", auth, addComment);
 
-router.get("/all/:page", getAllPosts);
-router.get("/:id", getPostById);
+router.get("/all/:page", auth, getAllPosts);
+router.get("/:id", auth, getPostById);
 
 export default router;

@@ -1,3 +1,4 @@
+import { verifyToken } from "../libs/verifyToken.js";
 import Chat from "../models/chat.model.js";
 
 import { verifyToken } from "../libs/verifyToken.js";
@@ -11,7 +12,7 @@ export const sendMessage = async (req, res) => {
 
     if (!token) return res.send(false);
 
-    const userFound = verifyToken(token);
+    const userFound = await verifyToken(token);
 
     if (!userFound) return res.send(false);
 
@@ -30,7 +31,19 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+<<<<<<< HEAD
     io.to(id).emit("newMessage", newMessage);
+=======
+    console.log(userFound.id)
+
+    const newMessage = {
+      sender: userFound.id,
+      content: message,
+    };
+
+    chat.messages.push(newMessage);
+    await chat.save();
+>>>>>>> 3afddf35055db68aed70a6e162698c633f2d754e
 
     res.status(201).json({
       newMessage,
@@ -38,28 +51,36 @@ export const sendMessage = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      message: "An error occurred",
+      message: "Ha ocurrido un error al mandar el mensaje",
     });
   }
 };
 
 export const getMessages = async (req, res) => {
   try {
+    
+    
     const { id } = req.params;
+    const { token } = req.cookies;
+    const currentUser = await verifyToken(token)
 
-    const chat = await Chat.findById(id).populate({
+    if (!currentUser) return res.status(500).json({ error: "No se encontró al usuario" })
+
+    const groupChat = await Chat.findById(id).populate({
       path: "messages.sender",
       select: "username",
     });
 
-    if (!chat) {
+    if (!groupChat.users.includes(currentUser.id)) return res.status(404).json({error: "No Autorizado"})
+
+    if (!groupChat) {
       return res.status(404).json({
         message: "Chat not found",
       });
     }
 
     return res.status(200).json({
-      chat,
+      chat: groupChat.messages,
     });
   } catch (err) {
     console.error(err);
@@ -70,6 +91,7 @@ export const getMessages = async (req, res) => {
 };
 
 export const createChat = async (req, res) => {
+<<<<<<< HEAD
   const { imageGroup, nameOfGroup, users } = req.body;
   const { token } = req.cookies;
 
@@ -77,6 +99,31 @@ export const createChat = async (req, res) => {
     const userFound = await verifyToken(token);
     if (!userFound)
       return res.status(404).json({ error: "Usuario no encontrado" });
+=======
+  const { nameOfGroup, users } = req.body;
+  const { token } = req.cookies;
+  
+  if (!req.file) {
+    return res.json({
+      error: "No se ha seleccionado un archivo admitido",
+    })
+  }
+    const paths = req.file.path.split("\\").slice(-3);
+    const path = "/media/"+paths[0]+"/" + paths[1] + "/" + paths[2];
+    
+  const currentUser = await verifyToken(token)
+  if (!currentUser) return res.status(500).json({error: "No se encontró al usuario"})
+  
+  
+  const usersGroup = users.split(",")
+  
+  usersGroup.push(currentUser.id)
+  const newChat = new Chat({
+    nameOfGroup,
+    users: usersGroup,
+    imageGroup: path,
+  });
+>>>>>>> 3afddf35055db68aed70a6e162698c633f2d754e
 
     users.push(userFound.id);
     const chat = new Chat({

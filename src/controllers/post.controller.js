@@ -1,16 +1,18 @@
 import Post from "../models/post.model.js";
 import { verifyToken } from "../libs/verifyToken.js";
 export const getAllPosts = async (req, res) => {
-  const page = req.params.page || 1;
+
+  
+  const page = req.params.page;
   const perPage = 50;
 
   try {
-    const posts = await Post.aggregate([{ $sample: { size: perPage } }])
-      .skip((page - 1) * perPage)
-      .limit(perPage)
-      .populate("user", "username")
-      .populate("comments.user", "commentUser");
-
+    
+    const posts = await Post.find()
+    .limit(perPage)
+    .skip((page-1)* perPage)
+    
+    console.log(page-1)
     res.json(posts);
   } catch (err) {
     res.status(500).json({ error: "Error al obtener los posts" });
@@ -37,8 +39,8 @@ export const createPost = async (req, res) => {
       });
     }
 
-    const paths = req.file.path.split("\\").slice(-2);
-    const path = "/media/" + paths[0] + "/" + paths[1];
+    const paths = req.file.path.split("\\").slice(-3);
+    const path = "/media/"+paths[0] + paths[1] + "/" + paths[2];
 
     const newPost = new Post({
       user: userFound.id,
@@ -100,7 +102,9 @@ export const addComment = async (req, res) => {
 
     if (!postUpdated)
       return res.status(404).json({ error: "No se ha encontrado el post" });
-    else res.json(postUpdated);
+
+    
+    res.json(postUpdated);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener el post" });
   }
@@ -128,7 +132,7 @@ export const addReaction = async (req, res) => {
 
     if (!postUpdated)
       return res.status(404).json({ error: "No se ha encontrado el post" });
-    else res.json(postUpdated);
+    res.json(postUpdated);
   } catch (error) {}
 };
 

@@ -21,7 +21,6 @@ const storage = (type) =>
           return cb(new Error("Token no válido"));
         }
 
-        console.log(type);
         const userFolder = path.join(
           __dirname,
           "../public/media/",
@@ -41,7 +40,6 @@ const storage = (type) =>
   });
 
 const fileFilter = (videoAccepted) => (req, file, cb) => {
-  console.log(videoAccepted);
   if (
     file.mimetype.startsWith("image/") ||
     file.mimetype.startsWith("video/")

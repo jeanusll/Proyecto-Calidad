@@ -11,9 +11,9 @@ import {
 const router = Router();
 const challengesUpload = upload("challenges", true);
 
-router.post("/", challengesUpload.single("media"), createChallenge);
-router.get("/all/:page", getAllChallenges);
-router.get("/:id", getChallengeById);
-router.put("/participate/:id", participate);
+router.post("/", auth, challengesUpload.single("media"), createChallenge);
+router.get("/all/:page", auth, getAllChallenges);
+router.get("/:id", auth, getChallengeById);
+router.put("/participate/:id", auth, participate);
 
 export default router;

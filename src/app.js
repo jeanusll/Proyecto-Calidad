@@ -9,13 +9,23 @@ import { __dirname } from "./libs/dirname.js";
 import path from "path";
 import http from "http";
 import { Server } from "socket.io";
+import cors from "cors";
 
 const app = express();
 const httpServer = http.createServer(app);
-const io = new Server(httpServer);
+const io = new Server(httpServer, {
+  cors: {
+    origin: 'http://localhost:3000'
+  }
+});
+
 console.log(__dirname);
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(morgan("dev"));
 app.use(cookieParser());
 

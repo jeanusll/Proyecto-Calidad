@@ -1,7 +1,5 @@
 import { verifyToken } from "../libs/verifyToken.js";
 import Chat from "../models/chat.model.js";
-
-import { verifyToken } from "../libs/verifyToken.js";
 import { io } from "../app.js";
 
 export const sendMessage = async (req, res) => {
@@ -31,19 +29,7 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
     io.to(id).emit("newMessage", newMessage);
-=======
-    console.log(userFound.id)
-
-    const newMessage = {
-      sender: userFound.id,
-      content: message,
-    };
-
-    chat.messages.push(newMessage);
-    await chat.save();
->>>>>>> 3afddf35055db68aed70a6e162698c633f2d754e
 
     res.status(201).json({
       newMessage,
@@ -91,43 +77,29 @@ export const getMessages = async (req, res) => {
 };
 
 export const createChat = async (req, res) => {
-<<<<<<< HEAD
-  const { imageGroup, nameOfGroup, users } = req.body;
+  const { nameOfGroup, userChat } = req.body;
   const { token } = req.cookies;
 
-  try {
+  // try {
     const userFound = await verifyToken(token);
-    if (!userFound)
-      return res.status(404).json({ error: "Usuario no encontrado" });
-=======
-  const { nameOfGroup, users } = req.body;
-  const { token } = req.cookies;
-  
-  if (!req.file) {
-    return res.json({
-      error: "No se ha seleccionado un archivo admitido",
-    })
-  }
-    const paths = req.file.path.split("\\").slice(-3);
-    const path = "/media/"+paths[0]+"/" + paths[1] + "/" + paths[2];
-    
-  const currentUser = await verifyToken(token)
-  if (!currentUser) return res.status(500).json({error: "No se encontró al usuario"})
-  
-  
-  const usersGroup = users.split(",")
-  
-  usersGroup.push(currentUser.id)
-  const newChat = new Chat({
-    nameOfGroup,
-    users: usersGroup,
-    imageGroup: path,
-  });
->>>>>>> 3afddf35055db68aed70a6e162698c633f2d754e
 
+    console.log()
+    if (!req.file){
+      return res.status(500).json({ error: "Hubo un problema al subir el archivo" });
+    }
+    if (!userFound)
+      return res.status(404).json({ error: "Usuario no encontrado" }); 
+    
+    const pathImage = req.file.path.split('\\').slice(-4)
+    const path = pathImage[0] + "/" + pathImage[1] + "/" + pathImage[2] + "/" + pathImage[3] + "/"
+    console.log(pathImage)    
+
+    var users = []
+    users.push(userChat);
     users.push(userFound.id);
+    
     const chat = new Chat({
-      imageGroup,
+      imageGroup: path,
       nameOfGroup,
       users,
     });
@@ -135,9 +107,9 @@ export const createChat = async (req, res) => {
     const chatSaved = await chat.save();
 
     res.json(chatSaved);
-  } catch (err) {
-    res.status(500).json({ error: "Error al crear el chat" });
-  }
+  // } catch (err) {
+  //   res.status(500).json({ error: "Error al crear el chat" });
+  // }
 };
 
 export const addUserToChat = async (req, res) => {

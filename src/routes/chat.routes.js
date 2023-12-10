@@ -1,17 +1,12 @@
 import { Router } from "express";
-
+import { upload } from '../middlewares/multer.js'
 import { auth } from "../middlewares/auth.middleware.js";
-<<<<<<< HEAD
-=======
-import { validateSchema } from "../middlewares/validator.middleware.js";
-import { upload } from "../middlewares/multer.js";
->>>>>>> 3afddf35055db68aed70a6e162698c633f2d754e
 
 import {
   createChat,
   getMessages,
   sendMessage,
-  addUserToChat,
+  addUserToChat
 } from "../controllers/chat.controller.js";
 
 const router = Router();

@@ -1,5 +1,6 @@
 import { verifyToken } from "../libs/verifyToken.js";
 import Chat from "../models/chat.model.js";
+import User from "../models/user.model.js";
 import { io } from "../app.js";
 
 export const sendMessage = async (req, res) => {
@@ -80,7 +81,7 @@ export const createChat = async (req, res) => {
   const { nameOfGroup, userChat } = req.body;
   const { token } = req.cookies;
 
-  // try {
+  try {
     const userFound = await verifyToken(token);
 
     console.log()
@@ -97,7 +98,7 @@ export const createChat = async (req, res) => {
     var users = []
     users.push(userChat);
     users.push(userFound.id);
-    
+
     const chat = new Chat({
       imageGroup: path,
       nameOfGroup,
@@ -106,10 +107,12 @@ export const createChat = async (req, res) => {
 
     const chatSaved = await chat.save();
 
+    const userSaved = await User.findByIdAndUpdate(userFound.id, {$push:{groupChats: chatSaved}})
+
     res.json(chatSaved);
-  // } catch (err) {
-  //   res.status(500).json({ error: "Error al crear el chat" });
-  // }
+  } catch (err) {
+    res.status(500).json({ error: "Error al crear el chat" });
+  }
 };
 
 export const addUserToChat = async (req, res) => {

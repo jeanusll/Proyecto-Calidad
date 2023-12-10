@@ -40,7 +40,7 @@ export const createPost = async (req, res) => {
     }
 
     const paths = req.file.path.split("\\").slice(-3);
-    const path = "/media/"+paths[0] + paths[1] + "/" + paths[2];
+    const path = "/media/"+ paths[0] + "/" + paths[1] + "/" + paths[2];
 
     const newPost = new Post({
       user: userFound.id,
